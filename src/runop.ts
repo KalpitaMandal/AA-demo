@@ -26,6 +26,7 @@ const runop = async () => {
   const providerConfig = {
     entryPointAddress,
     bundlerUrl: 'https://eip4337-bundler-goerli.protonapp.io/rpc',
+    // bundlerUrl: 'http://localhost:3000/rpc',
     chainId: network.chainId,
   }
 

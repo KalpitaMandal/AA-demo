@@ -24,6 +24,10 @@ function getNetwork (name: string): { url: string, accounts: string[] } {
 const config: HardhatUserConfig = {
   solidity: '0.8.17',
   networks: {
+    localhost: {
+      url: 'http://localhost:8545/',
+      saveDeployments: false
+    },
     goerli: getNetwork('goerli'),
   },
 }
