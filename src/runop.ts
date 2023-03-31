@@ -98,11 +98,13 @@ const runop = async () => {
   const aaSigner = aaProvier.getSigner()
 
   console.log('SCW address: ', await aaSigner.getAddress())
+  console.log('SCW Balance', await aaSigner.getBalance())
+  console.log('Greeter address: ', Greeter.address)
 
-  Greeter = Greeter.connect(aaSigner)
 
-  const tx = await Greeter.addGreet({
-    value: ethers.utils.parseEther('0'),
+  const tx = await Greeter.connect(aaSigner).addGreet({
+    value: ethers.utils.parseEther('0.001'),
+    gasLimit: 4000000
   })
 
   await tx.wait()
