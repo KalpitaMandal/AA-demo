@@ -8,10 +8,11 @@ import { deployments } from 'hardhat';
 import { MyWalletDeployer__factory } from './types'
 import { Greeter__factory } from './types/factories/Greeter__factory'
 import { MyPaymasterApi } from './MyPaymasterApi'
+import { BigNumber } from 'ethers'
 
 
 /** Contracts deployed on goerli network */
-const ENTRYPOINT_ADDR = '0x2167fA17BA3c80Adee05D98F0B55b666Be6829d6'
+const ENTRYPOINT_ADDR =  '0x0576a174D229E3cFA37253523E645A78A0C91B57' // '0x2167fA17BA3c80Adee05D98F0B55b666Be6829d6'
 
 const runop = async () => {
   console.log('--- starting runop ---')
@@ -25,9 +26,8 @@ const runop = async () => {
 
   const providerConfig = {
     entryPointAddress,
-    bundlerUrl: 'https://eip4337-bundler-goerli.protonapp.io/rpc',
-    // bundlerUrl: 'http://localhost:3000/rpc',
-    chainId: network.chainId,
+    bundlerUrl:  'http://localhost:9000/rpc', // 'https://eip4337-bundler-goerli.protonapp.io/rpc',
+    chainId: network.chainId
   }
 
   console.log('--- entryPoint initialisation ---')
@@ -98,12 +98,17 @@ const runop = async () => {
   const aaSigner = aaProvier.getSigner()
 
   console.log('SCW address: ', await aaSigner.getAddress())
-  console.log('SCW Balance', await aaSigner.getBalance())
-  console.log('Greeter address: ', Greeter.address)
+  console.log('SCW Balance before', await aaSigner.getBalance())
 
+  await orignalSigner.sendTransaction({
+    to: await aaSigner.getAddress(),
+    value: ethers.utils.parseEther("10")
+  })
+
+  console.log('SCW Balance after', await aaSigner.getBalance())
 
   const tx = await Greeter.connect(aaSigner).addGreet({
-    value: ethers.utils.parseEther('0.001'),
+    value: ethers.utils.parseEther('1'),
     gasLimit: 4000000
   })
 
