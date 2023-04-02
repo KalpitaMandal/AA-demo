@@ -34,4 +34,6 @@ contract Greeter {
         greets[msg.sender] = greets[msg.sender] - amount;
         payable(msg.sender).transfer(amount);
     }
+
+    receive() external payable {}
 }

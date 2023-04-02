@@ -27,8 +27,8 @@ const runop = async () => {
 
   const providerConfig = {
     entryPointAddress,
-    bundlerUrl: 'http://localhost:9000/rpc', // 'https://eip4337-bundler-goerli.protonapp.io/rpc',
-    chainId: network.chainId
+    bundlerUrl: "http://localhost:9000/rpc", // 'https://eip4337-bundler-goerli.protonapp.io/rpc',
+    chainId: 31337 // network.chainId
   }
 
   console.log('--- entryPoint initialisation ---')
@@ -82,7 +82,7 @@ const runop = async () => {
     paymasterAPI: myPaymasterApi
   })
 
-  // Deploying token paymaster contract
+  // -------- Deploying token paymaster contract ------------
   const signerAddress = await orignalSigner.getAddress()
   const { address: myTokenPaymasterAddress }  = await deploy("MyTokenPaymaster", {
     from: await orignalSigner.getAddress(),
@@ -101,7 +101,7 @@ const runop = async () => {
   /** This marks the end of creation of our custom wallet api */
   console.log('--- Erc4337EthersProvider initialisation ---')
 
-  const httpRpcClient = new HttpRpcClient(providerConfig.bundlerUrl, providerConfig.entryPointAddress, network.chainId)
+  const httpRpcClient = new HttpRpcClient(providerConfig.bundlerUrl, providerConfig.entryPointAddress, 31337) //network.chainId)
 
   const aaProvier = await new ERC4337EthersProvider(
     providerConfig,
@@ -113,24 +113,36 @@ const runop = async () => {
   ).init()
 
   const aaSigner = aaProvier.getSigner()
-
   console.log('SCW address: ', await aaSigner.getAddress())
 
-  await orignalSigner.sendTransaction({
-    to: await aaSigner.getAddress(),
-    value: ethers.utils.parseEther("10")
-  })
-
-  // await myTokenPaymaster.connect(orignalSigner).transfer(await aaSigner.getAddress(), 10, {
-  //   gasLimit: 4000000
+  // await orignalSigner.sendTransaction({
+  //   to: await aaSigner.getAddress(),
+  //   value: ethers.utils.parseEther("10")
   // })
+
+  await myTokenPaymaster.connect(orignalSigner).transfer(await aaSigner.getAddress(), 10, {
+    gasLimit: 4000000
+  })
 
   console.log('SCW Balance', await aaSigner.getBalance())
   console.log('SCW Token Balance', await myTokenPaymaster.balanceOf(await aaSigner.getAddress()))
 
-  const tx = await Greeter.connect(aaSigner).callStatic.addGreet({
-    value: ethers.utils.parseEther('10'),
-    gasLimit: 4000000
+  // Send ETH to trampoline example
+  // await orignalSigner.sendTransaction({
+  //   to: '0x146F423442f3F7213B7bBCA5Ddeb8C7F745bd954',
+  //   value: ethers.utils.parseEther('2')
+  // })
+  // console.log('Done')
+
+  // const tx = await Greeter.connect('0x38d429Ce3f7737e12efd5BAb8e4f4b4cFFd08b64').addGreet({
+  //   value: ethers.utils.parseEther('10'),
+  //   gasLimit: 1000000000000000
+  // })
+
+  Greeter = Greeter.connect(aaSigner)
+
+  const tx = await Greeter.callStatic.addGreet({
+    value: ethers.utils.parseEther('0')
   })
 
   // await tx.wait()
