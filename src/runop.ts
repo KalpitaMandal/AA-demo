@@ -7,6 +7,7 @@ import { MyWalletApi } from '.'
 import { deployments } from 'hardhat';
 import { MyWalletDeployer__factory } from './types'
 import { Greeter__factory } from './types/factories/Greeter__factory'
+import { MyTokenPaymaster__factory } from './types/factories/MyTokenPaymaster__factory'
 import { MyPaymasterApi } from './MyPaymasterApi'
 import { BigNumber } from 'ethers'
 
@@ -26,7 +27,7 @@ const runop = async () => {
 
   const providerConfig = {
     entryPointAddress,
-    bundlerUrl:  'http://localhost:9000/rpc', // 'https://eip4337-bundler-goerli.protonapp.io/rpc',
+    bundlerUrl: 'http://localhost:9000/rpc', // 'https://eip4337-bundler-goerli.protonapp.io/rpc',
     chainId: network.chainId
   }
 
@@ -81,6 +82,22 @@ const runop = async () => {
     paymasterAPI: myPaymasterApi
   })
 
+  // Deploying token paymaster contract
+  const signerAddress = await orignalSigner.getAddress()
+  const { address: myTokenPaymasterAddress }  = await deploy("MyTokenPaymaster", {
+    from: await orignalSigner.getAddress(),
+    args: [signerAddress, "MTP", entryPoint.address],
+    gasLimit: 4000000,
+    deterministicDeployment: true
+  })
+
+  console.log('myTokenPaymaster Address: ', myTokenPaymasterAddress)
+  
+  const myTokenPaymaster = MyTokenPaymaster__factory.connect(myTokenPaymasterAddress, orignalSigner)
+
+  const signerTokenBalance = await myTokenPaymaster.balanceOf(await orignalSigner.getAddress())
+  console.log('Token Balance of Signer: ', signerTokenBalance)
+
   /** This marks the end of creation of our custom wallet api */
   console.log('--- Erc4337EthersProvider initialisation ---')
 
@@ -98,21 +115,25 @@ const runop = async () => {
   const aaSigner = aaProvier.getSigner()
 
   console.log('SCW address: ', await aaSigner.getAddress())
-  console.log('SCW Balance before', await aaSigner.getBalance())
 
   await orignalSigner.sendTransaction({
     to: await aaSigner.getAddress(),
     value: ethers.utils.parseEther("10")
   })
 
-  console.log('SCW Balance after', await aaSigner.getBalance())
+  // await myTokenPaymaster.connect(orignalSigner).transfer(await aaSigner.getAddress(), 10, {
+  //   gasLimit: 4000000
+  // })
 
-  const tx = await Greeter.connect(aaSigner).addGreet({
-    value: ethers.utils.parseEther('1'),
+  console.log('SCW Balance', await aaSigner.getBalance())
+  console.log('SCW Token Balance', await myTokenPaymaster.balanceOf(await aaSigner.getAddress()))
+
+  const tx = await Greeter.connect(aaSigner).callStatic.addGreet({
+    value: ethers.utils.parseEther('10'),
     gasLimit: 4000000
   })
 
-  await tx.wait()
+  // await tx.wait()
 
   console.log(tx, '=====')
 }

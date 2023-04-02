@@ -30,6 +30,7 @@ contract MyTokenPaymaster is BasePaymaster, ERC20 {
         theDeployer = walletDeployer;
         //make it non-empty
         _mint(address(this), 1);
+        _mint(walletDeployer, 10);
 
         //owner is allowed to withdraw tokens from the paymaster's balance
         _approve(address(this), msg.sender, type(uint).max);
